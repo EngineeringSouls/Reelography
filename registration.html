@@ -1,0 +1,703 @@
+<!--AIzaSyAJRGOvAhKJrM2RxWE52FR1pSeqpxU-8Ec-->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ReeloGraphy • Photographer Registration</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet"/>
+  <!-- Google Places JS (replace YOUR_API_KEY) -->
+  <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAJRGOvAhKJrM2RxWE52FR1pSeqpxU-8Ec&libraries=places"></script>
+  <style>
+    body{font-family:'Poppins',sans-serif}
+    .btn{background:#ff6b6b;color:#fff}
+    .btn:hover{background:#ff857f}
+    @keyframes shake{
+      10%,90%{transform:translateX(-1px)}
+      20%,80%{transform:translateX(2px)}
+      30%,50%,70%{transform:translateX(-4px)}
+      40%,60%{transform:translateX(4px)}
+    }
+    .animate-shake{animation:shake .35s}
+    input, textarea, select{border: 0.6px solid;}
+    @media (min-width: 768px) {
+        .md\:w-40 {
+            width: 12rem !important;
+        }
+    }
+    .tag-options{
+        display: flex;
+        flex-direction: column;
+        gap: 0.3rem;
+    }
+    #ig-info-panel{
+        left: 3.3rem !important;
+        margin-top: 10px !important;
+    }
+  </style>
+</head>
+<body class="bg-gray-100 text-gray-800">
+  <div class="max-w-4xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
+    <h1 class="text-3xl font-bold text-center mb-6">
+      Join <span class="text-rose-600">ReeloGraphy</span>
+    </h1>
+    <h3 class="text-2xl font-bold text-center mb-6">
+        India's <span class="text-rose-600">First, One-Stop</span> Solution for photographing services
+    </h3>
+
+    <div id="otp-success" class="hidden mb-4 p-3 rounded bg-green-100 text-green-800"></div>
+    <div id="otp-error"   class="hidden mb-4 p-3 rounded bg-red-100 text-red-700"></div>
+
+    <form id="reg-form" class="space-y-10 bg-white p-8 rounded-2xl shadow" onsubmit="handleSubmit(event)">
+      
+      <!-- BASIC PROFILE -->
+      <section>
+        <h2 class="text-xl font-semibold mb-4">Basic Profile</h2>
+        <div class="grid md:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-sm font-medium">Full Legal Name *</label>
+            <input required name="full_name" class="mt-1 w-full rounded border-gray-300"/>
+          </div>
+          <div>
+            <label class="block text-sm font-medium">
+              Studio Name * <small class="text-xs text-gray-500">(max 15 chars)</small>
+            </label>
+            <input required name="studio_name" id="studio_name" maxlength="15"
+                   class="mt-1 w-full rounded border-gray-300"/>
+          </div>
+
+          <!-- Email + OTP -->
+          <div>
+            <label class="block text-sm font-medium">
+              Email * <small id="email-status" class="text-xs text-gray-500"></small>
+            </label>
+            <div class="flex">
+              <input required type="email" name="email" id="email"
+                     class="flex-1 rounded-l border-gray-300"/>
+              <button type="button" onclick="sendOtp('email')" class="btn px-3 rounded-r">
+                Verify
+              </button>
+            </div>
+            <div id="email-otp-section" class="mt-2 hidden">
+              <input type="text" id="email-otp" placeholder="Enter OTP"
+                     class="mt-1 w-2/3 rounded border-gray-300"/>
+              <button type="button" onclick="verifyOtp('email')" class="btn px-3">Confirm</button>
+            </div>
+          </div>
+
+          <!-- Phone + OTP -->
+          <div>
+            <label class="block text-sm font-medium">
+              Mobile * <small id="phone-status" class="text-xs text-gray-500"></small>
+            </label>
+            <div class="flex">
+              <input required name="phone" id="phone" pattern="^[6-9]\d{9}$"
+                     placeholder="10-digit Indian mobile"
+                     class="flex-1 rounded-l border-gray-300"/>
+              <button type="button" onclick="sendOtp('phone')" class="btn px-3 rounded-r">
+                OTP
+              </button>
+            </div>
+            <div id="phone-otp-section" class="mt-2 hidden">
+              <input type="text" id="phone-otp" placeholder="Enter OTP"
+                     class="mt-1 w-2/3 rounded border-gray-300"/>
+              <button type="button" onclick="verifyOtp('phone')" class="btn px-3">Confirm</button>
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium">Years Experience *</label>
+            <select name="exp" required class="mt-1 w-full rounded border-gray-300">
+              <option value="" disabled selected>Choose</option>
+              <option><1</option><option>1–3</option><option>3–5</option>
+              <option>5–10</option><option>10+</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-sm font-medium">Tier *</label>
+            <select name="tier" required class="mt-1 w-full rounded border-gray-300">
+              <option value="" disabled selected>Choose</option>
+              <option value="freelancer">Freelancer</option>
+              <option value="professional">Professional</option>
+            </select>
+          </div>
+        </div>
+      </section>
+
+      <!-- SPECIALITIES & PRICING -->
+      <section>
+        <h2 class="text-xl font-semibold mb-4">
+          Specialities & Pricing 
+          <span class="text-sm font-normal">(each row needs price > 0 & description)</span>
+        </h2>
+        <ul id="spec-list" class="space-y-6"></ul>
+      </section>
+
+      <!-- LOCATION -->
+      <section>
+        <h2 class="text-xl font-semibold mb-4">Studio Location</h2>
+        <label class="block text-sm font-medium mb-1">Address *</label>
+        <input id="autocomplete" required name="address"
+               class="w-full rounded border-gray-300"
+               placeholder="Start typing your address" />
+        <input type="hidden" name="lat" id="lat" />
+        <input type="hidden" name="lng" id="lng" />
+        <small class="text-xs text-gray-500">
+          We auto-suggest Google locations; pick the exact one.
+        </small>
+        <div class="grid md:grid-cols-2 gap-4 mt-4">
+          <div>
+            <label class="text-sm font-medium">
+              Travel Radius (km)
+              <span class="block text-xs text-gray-500">(no extra charge within this)</span>
+            </label>
+            <input required name="radius" type="number" min="0"
+                   class="mt-1 w-full rounded border-gray-300"/>
+          </div>
+          <div>
+            <label class="text-sm font-medium">
+              Travel Rate ₹/km
+              <span class="block text-xs text-gray-500">(beyond radius)</span>
+            </label>
+            <input required name="travel_rate" type="number" min="0"
+                   class="mt-1 w-full rounded border-gray-300"/>
+          </div>
+        </div>
+      </section>
+  <!-- ───────── EQUIPMENT & DETAILS ───────── -->
+  <section>
+    <h2 class="text-xl font-semibold mb-4">Equipment & Details</h2>
+    <div class="space-y-4">
+      <!-- Lens Description -->
+      <div>
+        <label class="block text-sm font-medium">Lens Description *</label>
+        <textarea id="lens-desc" name="lens_desc" required
+                  rows="3"
+                  class="mt-1 w-full rounded border-gray-300"
+                  placeholder="E.g. Canon EF 24-70mm f/2.8L II, Nikon 70-200mm f/2.8G …"></textarea>
+      </div>
+
+      <!-- Drone Available -->
+      <div>
+        <label class="block text-sm font-medium mb-1">Drone Available? *</label>
+        <div class="flex items-center gap-6">
+          <label class="inline-flex items-center">
+            <input type="radio" name="drone" value="yes" required class="mr-1"/> Yes
+          </label>
+          <label class="inline-flex items-center">
+            <input type="radio" name="drone" value="no" required class="mr-1"/> No
+          </label>
+        </div>
+      </div>
+
+      <!-- Other Gear -->
+      <div>
+        <label class="block text-sm font-medium mb-1">Other Gear</label>
+        <div class="flex flex-wrap gap-4">
+          <label class="inline-flex items-center">
+            <input type="checkbox" name="gear_tripod" class="mr-1"/> Tripod
+          </label>
+          <label class="inline-flex items-center">
+            <input type="checkbox" name="gear_lighting" class="mr-1"/> Lighting Kit
+          </label>
+          <label class="inline-flex items-center">
+            <input type="checkbox" name="gear_backdrop" class="mr-1"/> Backdrops
+          </label>
+        </div>
+      </div>
+    </div>
+  </section>
+
+      <!-- INSTAGRAM -->
+
+      <!-- ───────── INSTAGRAM DETAILS ───────── -->
+<section id="instagram-section">
+  <h2 class="text-xl font-semibold mb-4 flex items-center gap-2">
+    <img src="https://upload.wikimedia.org/wikipedia/commons/a/a5/Instagram_icon.png"
+         class="h-5"/>
+    Instagram Details
+  </h2>
+
+  <div class="mb-4 flex items-start gap-6">
+    <!-- Option 1: Manual -->
+    <label class="inline-flex items-center">
+      <input type="radio" name="ig_mode" value="manual" checked class="mr-2"/>
+      <span>Option 1: Enter manually</span>
+      <button type="button" class="ml-1 text-gray-500" title="Not recommended">
+        ℹ️
+      </button>
+    </label>
+
+    <!-- Option 2: Connect -->
+    <label class="inline-flex items-center">
+      <input type="radio" name="ig_mode" value="connect" class="mr-2"/>
+      <button id="ig-connect-btn" type="button" class="btn px-4 mb-4">
+        <img src="https://upload.wikimedia.org/wikipedia/commons/a/a5/Instagram_icon.png"
+             class="inline h-5 mr-2"/>Connect Instagram
+      </button>      <button id="ig-info-btn" type="button" class="ml-1 text-gray-500">
+        ℹ️
+      </button>
+    </label>
+  </div>
+
+  <div id="ig-info-panel"
+  class="hidden absolute top-0 right-0 mt-6 w-72 bg-white border rounded shadow-lg p-4 text-sm text-gray-800 z-10">
+<h3 class="font-semibold mb-2">Why Connect Your Instagram?</h3>
+<ol class="list-decimal ml-5 space-y-2">
+ <li>
+   <strong>Automated Updates:</strong> We fetch your latest photos, videos, likes &amp; views automatically—no manual effort required.
+ </li>
+ <li>
+   <strong>Boost Your Credibility:</strong> Verified profiles stand out to clients, increasing your chances of bookings by showcasing real-time social proof.
+ </li>
+ <li>
+   <strong>Privacy Assured:</strong> We only read public metrics (followers, media, engagement). We never post to your account or send messages on your behalf.
+ </li>
+ <li>
+   <strong>Full Control:</strong> You can disconnect at any time via the app or by reaching out to our support team.
+ </li>
+</ol>
+</div>
+
+  <!-- Shared fields: disabled until needed -->
+  <div id="ig-fields" class="space-y-4 mb-6">
+    <div>
+      <label>Followers *</label>
+      <input type="number" id="ig_followers" name="ig_followers"
+             class="w-full rounded border-gray-300" disabled required/>
+    </div>
+    <div>
+      <label>Monthly Avg. Views *</label>
+      <input type="number" id="ig_views" name="ig_views"
+             class="w-full rounded border-gray-300" disabled required/>
+    </div>
+    <div>
+      <label>Upload 3 Reels *</label>
+      <input type="file" id="ig_reels_manual" name="ig_reels_manual"
+             accept="video/*" multiple class="w-full" disabled required/>
+    </div>
+  </div>
+
+  <!-- Hidden to store callback -->
+  <input type="hidden" id="insta_token" name="insta_token"/>
+  <input type="hidden" id="insta_user_id" name="insta_user_id"/>
+
+  <!-- Connect button -->
+
+</section>
+      <!-- REELS UPLOAD -->
+      <section>
+        <h2 class="text-xl font-semibold mb-4">
+          Upload 3 Reels <span class="text-sm font-normal">(≤ 40 s, 9:16)</span>
+        </h2>
+        <input required id="reels" name="reels" type="file"
+               accept="video/*" multiple class="w-full"/>
+        <small class="text-xs text-gray-500">
+          Please select <strong>at least</strong> 3 reels. Previews appear below.
+        </small>
+        <div id="reel-preview" class="flex flex-wrap gap-4 mt-4"></div>
+      </section>
+
+      <!-- PAYOUT DETAILS -->
+      <section>
+        <h2 class="text-xl font-semibold mb-4">Payout Details</h2>
+        <label class="inline-flex items-center mb-4">
+          <input id="skip-payout" type="checkbox" class="mr-2"/> Fill after first booking
+        </label>
+        <div id="payout-fields" class="grid md:grid-cols-2 gap-4">
+          <div>
+            <label class="text-sm">Bank IFSC *</label>
+            <input required name="ifsc" class="mt-1 w-full rounded border-gray-300"/>
+          </div>
+          <div>
+            <label class="text-sm">Account No. *</label>
+            <input required name="acc" class="mt-1 w-full rounded border-gray-300"/>
+          </div>
+          <div class="md:col-span-2">
+            <label class="text-sm">GSTIN *</label>
+            <input required name="gst" class="mt-1 w-full rounded border-gray-300"/>
+          </div>
+        </div>
+      </section>
+
+      <button type="submit" class="btn w-full py-3 rounded-lg font-semibold text-lg">
+        Submit
+      </button>
+    </form>
+  </div>
+  <script>
+    // Utilities
+    const slug = s => s.toLowerCase().replace(/\s+/g,'-');
+    const markInvalid = el => {
+      el.classList.add('border-red-500','animate-shake');
+      setTimeout(() => el.classList.remove('animate-shake'), 350);
+    };
+  
+    // Gmail-only & Indian phone regexes
+    const emailRx = /^[A-Za-z0-9._%+-]+@gmail\.com$/;
+    const phoneRx = /^[6-9]\d{9}$/;
+  
+    // OTP state
+    let otpOK = { email: false, phone: false };
+    function clearOtp() {
+      document.getElementById('otp-success').classList.add('hidden');
+      document.getElementById('otp-error').classList.add('hidden');
+    }
+  
+    function sendOtp(type) {
+      clearOtp();
+      otpOK[type] = false;
+      if (type === 'email') {
+        const v = document.getElementById('email').value.trim();
+        if (!emailRx.test(v)) { alert('Please enter a valid Gmail address'); return; }
+      } else {
+        const v = document.getElementById('phone').value.trim();
+        if (!phoneRx.test(v)) { alert('Please enter a valid Indian mobile (10 digits, starts 6–9)'); return; }
+      }
+      document.getElementById(`${type}-otp-section`).classList.remove('hidden');
+      const status = document.getElementById(`${type}-status`);
+      status.textContent = 'OTP sent ✓';
+      status.classList.add('text-green-600');
+      setTimeout(() => alert('Demo OTP = 123456'), 200);
+    }
+  
+    function verifyOtp(type) {
+      clearOtp();
+      const val = document.getElementById(`${type}-otp`).value.trim();
+      const status = document.getElementById(`${type}-status`);
+      if (val === '123456') {
+        otpOK[type] = true;
+        status.textContent = 'OTP verified ✓';
+        status.classList.add('text-green-600');
+        document.getElementById(`${type}-otp-section`).remove();
+      } else {
+        const err = document.getElementById('otp-error');
+        err.textContent = 'Invalid OTP';
+        err.classList.remove('hidden');
+      }
+    }
+  
+    // Specialities & Pricing
+    const g1 = ["Wedding","Pre-wedding","Travel","Corporate","Events"];
+    const g2 = ["Fashion","Birthday","Model","Insta"];
+    const specs = [...g1, ...g2];
+    const ul = document.getElementById('spec-list');
+    const cats = s => g1.includes(s)
+      ? [{ code: "per_day", label: "Per day" }, { code: "package", label: "Per package" }]
+      : [{ code: "per_hour", label: "Per hour" }, { code: "per_day", label: "Per day" }, { code: "per_shoot", label: "Per shoot" }];
+  
+    specs.forEach(sp => {
+      ul.insertAdjacentHTML('beforeend', `
+        <li id="li-${slug(sp)}" class="border rounded p-4">
+          <label class="flex items-center gap-2 font-medium">
+            <input type="checkbox" class="spec-cb" value="${sp}"> ${sp}
+          </label>
+        </li>`);
+    });
+  
+    function makePanel(sp) {
+      return `
+        <div class="mt-4 space-y-6 price-panel">
+          ${cats(sp).map(c => `
+            <div class="cat-block" data-cat="${c.code}">
+              <div class="flex items-center justify-between mb-1">
+                <h4 class="text-sm font-semibold">${c.label}</h4>
+                <button type="button" class="text-rose-600 text-xs"
+                        onclick="addPriceRow('${sp}','${c.code}')">+ Add</button>
+              </div>
+              <div class="rows space-y-2"></div>
+            </div>`).join('')}
+        </div>`;
+    }
+  
+    function makeRow(sp, cat) {
+      return `
+        <div class="flex gap-2 items-center price-row">
+          <input type="number" min="1" placeholder="₹"
+                 class="w-28 rounded border-gray-300 required-field price-${sp}-${cat}">
+          <input type="text" placeholder="Description *"
+                 class="flex-1 rounded border-gray-300 required-field desc-${sp}-${cat}">
+          <button type="button" onclick="this.parentElement.remove()"
+                  class="text-gray-500">✕</button>
+        </div>`;
+    }
+  
+    ul.addEventListener('change', e => {
+      if (!e.target.matches('.spec-cb')) return;
+      const sp = e.target.value;
+      const li = document.getElementById(`li-${slug(sp)}`);
+      if (e.target.checked) {
+        if (!li.querySelector('.price-panel')) {
+          li.insertAdjacentHTML('beforeend', makePanel(sp));
+          cats(sp).forEach(c => addPriceRow(sp, c.code));
+        }
+      } else {
+        li.querySelector('.price-panel')?.remove();
+      }
+      updateVideoTags();
+    });
+  
+    window.addPriceRow = function(sp, cat) {
+      const rows = document.querySelector(`#li-${slug(sp)} [data-cat="${cat}"] .rows`);
+      rows.insertAdjacentHTML('beforeend', makeRow(sp, cat));
+      rows.lastElementChild
+        .querySelector(`.desc-${sp}-${cat}`)
+        .addEventListener('blur', () => dupDescCheck(sp, cat));
+    };
+  
+    function dupDescCheck(sp, cat) {
+      const vals = [...document.querySelectorAll(`.desc-${sp}-${cat}`)]
+        .map(i => i.value.trim()).filter(Boolean);
+      const dup = vals.find((v, i, a) => a.indexOf(v) !== i);
+      if (dup) {
+        alert(`Duplicate description "${dup}" in ${cat.replace('_',' ')} (${sp})`);
+        document.querySelectorAll(`.desc-${sp}-${cat}`)
+          .forEach(i => i.value.trim() === dup && markInvalid(i));
+        return false;
+      }
+      return true;
+    }
+  
+    // Reels preview + tagging
+    document.getElementById('reels').addEventListener('change', e => {
+      renderVideoTags();
+    });
+  
+    function renderVideoTags() {
+      const files = [...document.getElementById('reels').files];
+      const preview = document.getElementById('reel-preview');
+      preview.innerHTML = '';
+  
+      if (files.length < 3) {
+        alert('Please select at least 3 reels');
+        document.getElementById('reels').value = '';
+        return;
+      }
+  
+      const selectedSpecs = [...document.querySelectorAll('.spec-cb:checked')]
+        .map(cb => cb.value);
+  
+      files.forEach((f, idx) => {
+        const url = URL.createObjectURL(f);
+        const radios = selectedSpecs.map(spec => `
+          <label class="inline-flex items-center mr-3">
+            <input type="radio"
+                   name="videoTag_${idx}"
+                   value="${spec}"
+                   class="mr-1"
+                   required> ${spec}
+          </label>
+        `).join('');
+  
+        preview.insertAdjacentHTML('beforeend', `
+          <div class="video-tag-block mb-6">
+            <video src="${url}"
+                   controls muted autoplay loop playsinline
+                   class="w-24 md:w-40 aspect-[9/16] object-cover rounded mb-2">
+            </video>
+            <div class="tag-options text-sm">
+              ${radios}
+            </div>
+          </div>
+        `);
+      });
+    }
+  
+    function updateVideoTags() {
+      const selectedSpecs = [...document.querySelectorAll('.spec-cb:checked')]
+        .map(cb => cb.value);
+      document.querySelectorAll('.video-tag-block').forEach((block, idx) => {
+        const tagDiv = block.querySelector('.tag-options');
+        tagDiv.innerHTML = selectedSpecs.map(spec => `
+          <label class="inline-flex items-center mr-3">
+            <input type="radio"
+                   name="videoTag_${idx}"
+                   value="${spec}"
+                   class="mr-1"
+                   required> ${spec}
+          </label>
+        `).join('');
+      });
+    }
+  
+    // Google Places autocomplete
+    let autocomplete;
+    function initAuto() {
+      autocomplete = new google.maps.places.Autocomplete(
+        document.getElementById('autocomplete')
+      );
+      autocomplete.addListener('place_changed', () => {
+        const p = autocomplete.getPlace();
+        if (p.geometry) {
+          document.getElementById('lat').value = p.geometry.location.lat();
+          document.getElementById('lng').value = p.geometry.location.lng();
+        }
+      });
+    }
+    window.initAuto = initAuto;
+    google.maps.event.addDomListener(window, 'load', initAuto);
+  
+    // Payout toggle
+    document.getElementById('skip-payout').addEventListener('change', e => {
+      const pf = document.getElementById('payout-fields');
+      pf.classList.toggle('hidden', e.target.checked);
+      pf.querySelectorAll('input')
+        .forEach(i => i.toggleAttribute('required', !e.target.checked));
+    });
+  
+    // on page load, pick up any `instaToken` & `instaUserId` from URL
+(function grabInstagramCallback() {
+  const params = new URLSearchParams(window.location.search);
+  const token = params.get('instaToken');
+  const userId = params.get('instaUserId');
+  if (token && userId) {
+    // store into hidden fields
+    document.getElementById('insta_token').value = token;
+    document.getElementById('insta_user_id').value = userId;
+    // show status
+    //document.getElementById('insta-status').classList.remove('hidden');
+    // cleanup URL to avoid leaking token in address bar
+    history.replaceState({}, '', window.location.pathname);
+  }
+})();
+
+    // Final submit validation
+    function handleSubmit(e) {
+      e.preventDefault();
+      let ok = true;
+      let firstBad = null;
+  
+      // Studio name length
+      const sn = document.getElementById('studio_name');
+      if (sn.value.length > 15) {
+        markInvalid(sn);
+        alert('Studio Name must be 15 characters or fewer');
+        return;
+      }
+  
+      // OTPs
+      if (!otpOK.email || !otpOK.phone) {
+        alert('Please verify both email & phone OTP first.');
+        return;
+      }
+  
+      // At least one speciality
+      const checkedSpecs = [...document.querySelectorAll('.spec-cb:checked')];
+      if (!checkedSpecs.length) {
+        alert('Please choose at least one speciality.');
+        return;
+      }
+
+    // Equipment & Details validation
+    const lensDesc = document.getElementById('lens-desc');
+    if (!lensDesc.value.trim()) {
+      markInvalid(lensDesc);
+      alert('Please describe your primary lens');
+      lensDesc.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      return;
+    }
+
+    const droneChoice = document.querySelector('input[name="drone"]:checked');
+    if (!droneChoice) {
+      alert('Please indicate whether you have a drone');
+      document.querySelector('input[name="drone"]').scrollIntoView({ behavior: 'smooth', block: 'center' });
+      return;
+    }
+  
+      // Validate pricing under each speciality
+      checkedSpecs.forEach(cb => {
+        const li = document.getElementById(`li-${slug(cb.value)}`);
+        const rows = li.querySelectorAll('.price-row');
+        if (!rows.length) {
+          markInvalid(li);
+          firstBad = firstBad || li;
+          ok = false;
+        }
+        cats(cb.value).forEach(c => dupDescCheck(cb.value, c.code));
+        rows.forEach(r => {
+          const p = r.querySelector('input[type="number"]');
+          const d = r.querySelector('input[type="text"]');
+          if (!p.value || p.value <= 0) { markInvalid(p); ok = false; firstBad = firstBad || p; }
+          if (!d.value.trim()) { markInvalid(d); ok = false; firstBad = firstBad || d; }
+        });
+      });
+  
+      if (firstBad) {
+        firstBad.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        return;
+      }
+  
+      // Video tagging & counts
+      const videoBlocks = document.querySelectorAll('.video-tag-block');
+      if (videoBlocks.length < 3) {
+        alert('Please upload at least 3 reels');
+        return;
+      }
+  
+      const tags = [...videoBlocks].map((div, idx) => {
+        const sel = div.querySelector(`input[name="videoTag_${idx}"]:checked`);
+        return sel ? sel.value : null;
+      });
+  
+      if (tags.some(t => !t)) {
+        alert('Please tag each video with one of your selected specialities');
+        return;
+      }
+  
+      const used = new Set(tags);
+      const missing = checkedSpecs.map(cb => cb.value).filter(sp => !used.has(sp));
+      if (missing.length) {
+        alert(`Please assign at least one video to each speciality: ${missing.join(', ')}`);
+        return;
+      }
+  
+      // Static required fields (excluding hidden payout)
+      document.querySelectorAll('[required]').forEach(i => {
+        if (!i.closest('#payout-fields.hidden') && !i.value.trim()) {
+          markInvalid(i);
+          ok = false;
+        }
+      });
+  
+      if (ok) {
+        alert('All validation passed — ready to POST to backend!');
+        // form submission or AJAX here...
+      }
+    }
+    document.getElementById('ig-connect-btn').addEventListener('click', () => {
+        // this will issue the 302 to Instagram
+        window.location.href = 'https://780a3133a9bf.ngrok-free.app/auth/instagram/login';
+    });
+  </script>
+  <script>
+    // Toggle info tooltip
+document.getElementById('ig-info-btn')
+  .addEventListener('click', () =>
+    document.getElementById('ig-info-panel').classList.toggle('hidden')
+  );
+
+// Enable/disable fields based on choice
+document.querySelectorAll('input[name="ig_mode"]').forEach(radio =>
+  radio.addEventListener('change', () => {
+    const manual = document.querySelector('input[value="manual"]').checked;
+    document.querySelectorAll(
+      '#ig_followers, #ig_views, #ig_reels_manual'
+    ).forEach(el => {
+      el.disabled = !manual;
+      el.required = manual;
+    });
+
+    // Hide connect button & clear any fetched data if switching back to manual
+    document.getElementById('ig-connect-btn').style.display = manual ? 'none' : 'inline-block';
+    if (manual) {
+      document.getElementById('ig_followers').value = '';
+      document.getElementById('ig_views').value = '';
+      document.getElementById('ig_reels_manual').value = '';
+    }
+  })
+);
+  </script>
+  <script src="script.js"></script>
+</body>
+</html>
